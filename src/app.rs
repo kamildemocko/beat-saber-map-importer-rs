@@ -9,6 +9,7 @@ pub struct MyApp {
     status: Status,
     delete_checked: bool,
     dropped_files: Vec<DroppedFile>,
+    copier: Copier,
 }
 
 impl MyApp {
@@ -17,6 +18,7 @@ impl MyApp {
             status: Status::new(),
             delete_checked: false,
             dropped_files: Vec::new(),
+            copier: Copier::new(),
         }
     }
 }
@@ -33,12 +35,8 @@ impl App for MyApp {
         });
 
         if !self.dropped_files.is_empty() {
-            let copier = Copier::new();
-            let game_path = match copier.find_game_path() {
+            let game_path = match self.copier.find_game_path() {
                 Ok(val) => {
-                    self.status.insert_status(
-                        format!("found game folder: {}", fix_path(val))
-                    );
                     // TODO copy
                 }
                 Err(err) => {
@@ -59,6 +57,7 @@ impl App for MyApp {
     }
 }
 
+// TODO if not used delete
 fn fix_path(path: PathBuf) -> String {
     path
         .to_string_lossy()

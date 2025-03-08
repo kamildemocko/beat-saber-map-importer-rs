@@ -4,6 +4,7 @@ use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
 
 
+#[derive(Default)]
 pub struct Copier{}
 
 impl Copier {
