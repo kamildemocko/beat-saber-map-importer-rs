@@ -24,13 +24,19 @@ pub fn render_bottom_panel(ui: &mut Ui, status: &mut Status, delete_checked: &mu
             ui.add_space(10.0);
 
             if ui.link("Github").clicked() {
-                open::that(config::GITHUB_LINK).unwrap();
-                status.insert_status("opened Github link".to_string());
+                if let Err(err) = open::that(config::GITHUB_LINK) {
+                    status.insert_status(format!("failed to open link: {}", err));
+                } else {
+                    status.insert_status("opened Github link".to_string());
+                }
             }
             ui.label(" | ");
             if ui.link("BeatSaver Maps").clicked() {
-                open::that(config::BEATSABER_LINK).unwrap();
-                status.insert_status("opened BeatSaber link".to_string());
+                if let Err(err) = open::that(config::BEATSABER_LINK) {
+                    status.insert_status(format!("failed to open link: {}", err));
+                } else {
+                    status.insert_status("opened BeatSaber link".to_string());
+                }
             }
         });
     });
