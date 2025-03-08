@@ -33,7 +33,14 @@ impl App for MyApp {
         if !self.dropped_files.is_empty() {
             self.status.insert_status(format!("got files: {:?}", &self.dropped_files));
             // TODO
-            let _copier = Copier::new().unwrap();
+            let copier = Copier::new().unwrap();
+            self.status.insert_status(
+                format!("found game folder: {}", copier.game_path
+                    .to_string_lossy()
+                    .replace(r"\\", r"\")
+                    .replacen(r"\\", r"\", 1))
+                    //TODO TRIM LEN
+            );
 
             self.dropped_files = Vec::new();
         }
