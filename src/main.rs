@@ -10,7 +10,8 @@ fn main() {
     let options = NativeOptions {
         viewport: ViewportBuilder::default()
             .with_inner_size(config::WINDOW_SIZE)
-            .with_resizable(false),
+            .with_resizable(false)
+            .with_drag_and_drop(true),
         ..Default::default()
     };
     _ = run_native(
