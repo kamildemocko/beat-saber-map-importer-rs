@@ -2,6 +2,7 @@ mod config;
 mod app;
 mod ui;
 mod status;
+mod copier;
 
 use crate::app::MyApp;
 use eframe::{egui::ViewportBuilder, run_native, NativeOptions};

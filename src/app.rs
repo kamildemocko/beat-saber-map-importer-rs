@@ -1,6 +1,6 @@
 use eframe::{egui::{self, Align, CentralPanel, DroppedFile, Layout}, App};
 
-use crate::{status::Status, ui::{render_bottom_panel, render_central_view}};
+use crate::{copier::Copier, status::Status, ui::{render_bottom_panel, render_central_view}};
 
 #[derive(Default)]
 pub struct MyApp {
@@ -32,8 +32,10 @@ impl App for MyApp {
 
         if !self.dropped_files.is_empty() {
             self.status.insert_status(format!("got files: {:?}", &self.dropped_files));
-            self.dropped_files = Vec::new();
             // TODO
+            let _copier = Copier::new().unwrap();
+
+            self.dropped_files = Vec::new();
         }
     });
 
