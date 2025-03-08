@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use eframe::{egui::{self, Align, CentralPanel, DroppedFile, Layout}, App};
 
 use crate::{copier::Copier, status::Status, ui::{render_bottom_panel, render_central_view}};
@@ -31,16 +33,19 @@ impl App for MyApp {
         });
 
         if !self.dropped_files.is_empty() {
-            self.status.insert_status(format!("got files: {:?}", &self.dropped_files));
-            // TODO
-            let copier = Copier::new().unwrap();
-            self.status.insert_status(
-                format!("found game folder: {}", copier.game_path
-                    .to_string_lossy()
-                    .replace(r"\\", r"\")
-                    .replacen(r"\\", r"\", 1))
-                    //TODO TRIM LEN
-            );
+            let copier = Copier::new();
+            let game_path = match copier.find_game_path() {
+                Ok(val) => {
+                    self.status.insert_status(
+                        format!("found game folder: {}", fix_path(val))
+                    );
+                    // TODO copy
+                }
+                Err(err) => {
+                    self.status.insert_status(format!("error: {}", err));
+                    self.dropped_files = Vec::new();
+                }
+            };
 
             self.dropped_files = Vec::new();
         }
@@ -52,4 +57,11 @@ impl App for MyApp {
             }
         })
     }
+}
+
+fn fix_path(path: PathBuf) -> String {
+    path
+        .to_string_lossy()
+        .replace(r"\\", r"\")
+        .replacen(r"\\", r"\", 1)
 }

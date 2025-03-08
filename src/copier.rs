@@ -4,12 +4,14 @@ use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
 
 
-pub struct Copier {
-    pub game_path: PathBuf,
-}
+pub struct Copier{}
 
 impl Copier {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Self {
+        Self{}
+    }
+    
+    pub fn find_game_path(&self) -> Result<PathBuf> {
         let steam_install_path = Copier::get_steam_path()?;
         let steamapps_paths = Copier::get_steamapps_path(steam_install_path)?;
         if steamapps_paths.len() == 0 { 
@@ -18,7 +20,7 @@ impl Copier {
 
         let game_folder = Copier::get_game_path(steamapps_paths)?;
 
-        Ok(Self { game_path: game_folder })
+        Ok(game_folder)
     }
 
     // gets steam install path from registry
@@ -52,7 +54,7 @@ impl Copier {
         let mut found_paths: Vec<PathBuf> = Vec::new();
 
         for path in steamapps_paths {
-            let search_folder = path.join(r"steamapps\common\Beat Saber");
+            let search_folder = path.join(r"steamapps\common\Beat Saberr");
             if search_folder.exists() {
                 found_paths.push(search_folder);
             }
