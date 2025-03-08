@@ -1,5 +1,6 @@
 use std::{fs::File, io, path::PathBuf};
 
+use eframe::egui::DroppedFile;
 use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
 
@@ -11,8 +12,8 @@ impl Copier {
     pub fn new() -> Self {
         Self{}
     }
-    
-    pub fn find_game_path(&self) -> Result<PathBuf> {
+
+    pub fn copy_to_game(&self, paths: &Vec<DroppedFile>) -> Result<()> {
         let steam_install_path = Copier::get_steam_path()?;
         let steamapps_paths = Copier::get_steamapps_path(steam_install_path)?;
         if steamapps_paths.len() == 0 { 
@@ -20,8 +21,13 @@ impl Copier {
         }
 
         let game_folder = Copier::get_game_path(steamapps_paths)?;
+        
+        // TODO copy logic
+        for map in paths {
+            todo!()
+        }
 
-        Ok(game_folder)
+        Ok(())
     }
 
     // gets steam install path from registry
@@ -55,7 +61,7 @@ impl Copier {
         let mut found_paths: Vec<PathBuf> = Vec::new();
 
         for path in steamapps_paths {
-            let search_folder = path.join(r"steamapps\common\Beat Saberr");
+            let search_folder = path.join(r"steamapps\common\Beat Saber");
             if search_folder.exists() {
                 found_paths.push(search_folder);
             }

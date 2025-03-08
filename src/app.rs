@@ -35,13 +35,20 @@ impl App for MyApp {
         });
 
         if !self.dropped_files.is_empty() {
-            let game_path = match self.copier.find_game_path() {
-                Ok(val) => {
-                    // TODO copy
-                }
+            match self.copier.copy_to_game(&self.dropped_files) {
+                Ok(_) => {
+                    for map in &self.dropped_files {
+                        let map_name = map.path.as_ref()
+                            .map(|p| p.to_string_lossy().to_string())
+                            .unwrap_or(String::from("unknown"));
+
+                        self.status.insert_status(
+                            format!("imported to the game: {}", map_name)
+                        );
+                    }
+                },
                 Err(err) => {
                     self.status.insert_status(format!("error: {}", err));
-                    self.dropped_files = Vec::new();
                 }
             };
 
