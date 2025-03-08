@@ -1,12 +1,17 @@
 use eframe::egui::Ui;
 use eframe::egui::{Align, Layout, TextEdit};
 
+use crate::config;
+use crate::status::Status;
 
-pub fn render_bottom_panel(ui: &mut Ui, status: &mut String, delete_checked: &mut bool) {
+
+pub fn render_bottom_panel(ui: &mut Ui, status: &mut Status, delete_checked: &mut bool) {
+    let mut status_text = status.get_string();
+
     ui.add_space(5.0);
     ui.add_sized(
         [ui.available_width() - 20.0, 80.0], 
-        TextEdit::multiline(status)
+        TextEdit::multiline(&mut status_text)
             .desired_rows(5)
             .interactive(false)
     );
@@ -19,11 +24,13 @@ pub fn render_bottom_panel(ui: &mut Ui, status: &mut String, delete_checked: &mu
             ui.add_space(10.0);
 
             if ui.link("Github").clicked() {
-                open::that("https://github.com/kamildemocko/beat-saber-song-installer.git").unwrap();
+                open::that(config::GITHUB_LINK).unwrap();
+                status.insert_status("opened Github link".to_string());
             }
             ui.label(" | ");
             if ui.link("BeatSaver Maps").clicked() {
-                open::that("https://beatsaver.com/").unwrap();
+                open::that(config::BEATSABER_LINK).unwrap();
+                status.insert_status("opened BeatSaber link".to_string());
             }
         });
     });

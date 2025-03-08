@@ -1,17 +1,17 @@
 use eframe::{egui::{self, Align, CentralPanel, Layout}, App};
 
-use crate::ui::{render_bottom_panel, render_central_view};
+use crate::{status::Status, ui::{render_bottom_panel, render_central_view}};
 
 #[derive(Default)]
 pub struct MyApp {
-    status: String,
+    status: Status,
     delete_checked: bool,
 }
 
 impl MyApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         Self {
-            status: String::new(),
+            status: Status::new(),
             delete_checked: false,
         }
     }
