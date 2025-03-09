@@ -22,6 +22,8 @@ impl Copier {
         }
 
         let game_folder = Copier::get_game_path(steamapps_paths)?;
+
+        // TODO check file size and allow only X MB
         
         for map in paths {
             let map_path = map.path.clone().unwrap();
