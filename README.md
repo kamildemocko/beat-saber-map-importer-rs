@@ -23,6 +23,8 @@ To install the Beat Saber Map Importer, follow these steps:
 Drag and drop the map file into the app window
 
 ## Screenshots
+![image](https://github.com/user-attachments/assets/bda169c9-454d-4054-9b12-f0688312b9dc)
+
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
