@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, io, path::PathBuf};
+use std::{fs, io, path::PathBuf};
 
 use eframe::egui::DroppedFile;
 use regex::Regex;
@@ -36,7 +36,7 @@ impl Copier {
 
             if destination_folder.exists() {
                 println!("already exists: {:?}", &map_name);
-                return Err(anyhow!("map already exists in game folder"))
+                return Err(anyhow!(format!("map {} is already exists in game folder", map_name)))
             }
 
             Copier::extract_files(map_path, destination_folder)?;
@@ -47,7 +47,7 @@ impl Copier {
 
     fn extract_files(zip_file: PathBuf, destination: PathBuf) -> Result<()> {
         fs::create_dir(&destination)?;
-        let file = File::open(zip_file)?;
+        let file = fs::File::open(zip_file)?;
         let mut archive = ZipArchive::new(file)?;
 
         for i in 0..archive.len() {
@@ -74,7 +74,7 @@ impl Copier {
     fn get_steamapps_path(steam_path: PathBuf) -> Result<Vec<PathBuf>> {
         let config_file = steam_path.join(r"steamapps\libraryfolders.vdf");
 
-        let file = File::open(config_file)?;
+        let file = fs::File::open(config_file)?;
         let config_file_content = io::read_to_string(file)?;
 
         let re = Regex::new(r#""path"\s+"(.*)""#)?;

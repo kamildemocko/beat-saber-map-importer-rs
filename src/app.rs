@@ -1,3 +1,5 @@
+use std::fs;
+
 use eframe::{egui::{self, Align, CentralPanel, DroppedFile, Layout}, App};
 
 use crate::{copier::Copier, status::Status, ui::{render_bottom_panel, render_central_view}};
@@ -26,34 +28,40 @@ impl App for MyApp {
         CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered(|ui| {
                 render_central_view(ui);
+            });
 
             ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
                 render_bottom_panel(ui, &mut self.status, &mut self.delete_checked);
-            })
-        });
+            });
 
-        if !self.dropped_files.is_empty() {
-            match self.copier.copy_to_game(&self.dropped_files) {
-                Ok(_) => {
-                    for map in &self.dropped_files {
-                        let map_name = map.path.as_ref().unwrap()
-                            .file_stem()
-                            .map(|p| p.to_string_lossy().to_string())
-                            .unwrap();
+            if !self.dropped_files.is_empty() {
+                match self.copier.copy_to_game(&self.dropped_files) {
+                    Ok(_) => {
+                        for map in &self.dropped_files {
+                            let map_name = map.path.as_ref().unwrap()
+                                .file_stem()
+                                .map(|p| p.to_string_lossy().to_string())
+                                .unwrap();
 
-                        self.status.insert_status(
-                            format!("map {} imported to game", map_name)
-                        );
+                            if self.delete_checked {
+                                for f in &self.dropped_files {
+                                    fs::remove_file(f.path.as_ref().unwrap()).unwrap();
+                                }
+                            }
+
+                            self.status.insert_status(
+                                format!("map {} imported to game", map_name)
+                            );
+                        }
+                    },
+                    Err(err) => {
+                        self.status.insert_status(format!("error: {}", err));
                     }
-                },
-                Err(err) => {
-                    self.status.insert_status(format!("error: {}", err));
-                }
-            };
+                };
 
-            self.dropped_files = Vec::new();
-        }
-    });
+                self.dropped_files = Vec::new();
+            }
+        });
 
         ctx.input(|i| {
             if !i.raw.dropped_files.is_empty() {
