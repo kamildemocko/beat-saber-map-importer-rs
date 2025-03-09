@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use eframe::{egui::{self, Align, CentralPanel, DroppedFile, Layout}, App};
 
 use crate::{copier::Copier, status::Status, ui::{render_bottom_panel, render_central_view}};
@@ -38,12 +36,13 @@ impl App for MyApp {
             match self.copier.copy_to_game(&self.dropped_files) {
                 Ok(_) => {
                     for map in &self.dropped_files {
-                        let map_name = map.path.as_ref()
+                        let map_name = map.path.as_ref().unwrap()
+                            .file_stem()
                             .map(|p| p.to_string_lossy().to_string())
-                            .unwrap_or(String::from("unknown"));
+                            .unwrap();
 
                         self.status.insert_status(
-                            format!("imported to the game: {}", map_name)
+                            format!("map {} imported to game", map_name)
                         );
                     }
                 },
@@ -62,12 +61,4 @@ impl App for MyApp {
             }
         })
     }
-}
-
-// TODO if not used delete
-fn fix_path(path: PathBuf) -> String {
-    path
-        .to_string_lossy()
-        .replace(r"\\", r"\")
-        .replacen(r"\\", r"\", 1)
 }

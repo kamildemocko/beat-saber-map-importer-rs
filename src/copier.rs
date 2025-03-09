@@ -1,8 +1,9 @@
-use std::{fs::File, io, path::PathBuf};
+use std::{fs::{self, File}, io, path::PathBuf};
 
 use eframe::egui::DroppedFile;
 use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
+use zip::ZipArchive;
 
 
 #[derive(Default)]
@@ -22,9 +23,38 @@ impl Copier {
 
         let game_folder = Copier::get_game_path(steamapps_paths)?;
         
-        // TODO copy logic
         for map in paths {
-            todo!()
+            let map_path = map.path.clone().unwrap();
+            let map_name = map.path.as_ref().unwrap()
+                .file_stem()
+                .map(|p| p.to_string_lossy().to_string()).unwrap();
+            println!("map name: {:?}", &map_name);
+            let destination_folder = game_folder
+                .join("Beat Saber_Data")
+                .join("CustomLevels")
+                .join(&map_name);
+
+            if destination_folder.exists() {
+                println!("already exists: {:?}", &map_name);
+                return Err(anyhow!("map already exists in game folder"))
+            }
+
+            Copier::extract_files(map_path, destination_folder)?;
+        }
+
+        Ok(())
+    }
+
+    fn extract_files(zip_file: PathBuf, destination: PathBuf) -> Result<()> {
+        fs::create_dir(&destination)?;
+        let file = File::open(zip_file)?;
+        let mut archive = ZipArchive::new(file)?;
+
+        for i in 0..archive.len() {
+            let mut file = archive.by_index(i)?;
+            let outpath = destination.join(file.name());
+            let mut exoutfile = fs::File::create(&outpath)?;
+            io::copy(&mut file, &mut exoutfile).unwrap();
         }
 
         Ok(())
