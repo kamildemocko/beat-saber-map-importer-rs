@@ -38,10 +38,19 @@ impl App for MyApp {
                 match self.copier.copy_to_game(&self.dropped_files) {
                     Ok(_) => {
                         for map in &self.dropped_files {
-                            let map_name = map.path.as_ref().unwrap()
+                            let map_path = match map.path.as_ref() {
+                                Some(val) => val,
+                                None => {
+                                    self.status.insert_status(
+                                        String::from("error: cannot get path from file")
+                                    );
+                                    continue 
+                                }
+                            };
+                            let map_name = map_path
                                 .file_stem()
                                 .map(|p| p.to_string_lossy().to_string())
-                                .unwrap();
+                                .unwrap_or(String::from("Unknown map"));
 
                             if self.delete_checked {
                                 for f in &self.dropped_files {

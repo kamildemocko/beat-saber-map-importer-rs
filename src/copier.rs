@@ -25,17 +25,17 @@ impl Copier {
         
         for map in paths {
             let map_path = map.path.clone().unwrap();
-            let map_name = map.path.as_ref().unwrap()
+            let map_name = &map_path
                 .file_stem()
-                .map(|p| p.to_string_lossy().to_string()).unwrap();
-            println!("map name: {:?}", &map_name);
+                .ok_or_else(|| anyhow!("Invalid file name"))?
+                .to_string_lossy()
+                .to_string();
             let destination_folder = game_folder
                 .join("Beat Saber_Data")
                 .join("CustomLevels")
                 .join(&map_name);
 
             if destination_folder.exists() {
-                println!("already exists: {:?}", &map_name);
                 return Err(anyhow!(format!("map {} is already exists in game folder", map_name)))
             }
 
