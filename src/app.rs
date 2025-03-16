@@ -14,13 +14,13 @@ pub struct MyApp {
 }
 
 impl MyApp {
-    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>) -> Result<Self> {
+        Ok(Self {
             status: Status::new(),
             delete_checked: false,
             dropped_files: Vec::new(),
-            copier: Copier::new(),
-        }
+            copier: Copier::new()?,
+        })
     }
 
     fn render_ui(&mut self, ctx: &Context) {
@@ -30,7 +30,7 @@ impl MyApp {
             });
 
             ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
-                render_bottom_panel(ui, &mut self.status, &mut self.delete_checked);
+                render_bottom_panel(ui, &mut self.status, &mut self.delete_checked, &self.copier.game_path);
             });
         });
     }
@@ -48,37 +48,39 @@ impl MyApp {
             return;
         }
 
-        match self.copier.copy_to_game(&self.dropped_files) {
-            Ok(_) => self.handle_successful_import(),
-            Err(err) => {
-                self.status.insert_status(format!("error: {}", err));
-            }
-        }
-
-        self.dropped_files = Vec::new();
-    }
-
-    fn handle_successful_import(&mut self) {
         for map in &self.dropped_files {
-            let map_name_res = self.get_map_name_from_dropped_file(map);
-            match map_name_res {
-                Ok(map_name) => {
+            let map_path = map.path.as_ref().unwrap();
+            let map_name = match self.get_map_name_from_dropped_file(map) {
+                Ok(map_name) => map_name,
+                Err(err) => {
+                    self.status.insert_status(format!("error: {}", err));
+                    continue;
+                }
+            };
+
+            match self.copier.copy_to_game(map_path, &map_name) {
+                Ok(_) => {
                     if self.delete_checked {
                         if let Err(err) = self.try_delete_map(map) {
                             self.status.insert_status(format!("error: {}", err));
-                            return
+                            continue;
                         }
                     }
-
                     self.status.insert_status(
                         format!("map {} imported to game", map_name)
                     );
-                }
+                },
                 Err(err) => {
                     self.status.insert_status(format!("error: {}", err));
+                    continue;
                 }
             }
+
         }
+    }
+
+    fn reset_dropped_files(&mut self) {
+        self.dropped_files = Vec::new();
     }
 
     fn try_delete_map(&self, map: &DroppedFile) -> Result<()> {
@@ -108,5 +110,6 @@ impl App for MyApp {
         self.render_ui(ctx);
         self.check_new_files(ctx);
         self.process_dropped_files();
+        self.reset_dropped_files();
     }
 }

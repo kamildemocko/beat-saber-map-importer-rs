@@ -16,12 +16,12 @@ impl Status {
 
     pub fn insert_status(&mut self, status: String) {
         if self.rows.len() > 4 {
-            self.rows.remove(4);
+            self.rows.remove(0);
         }
 
         let now = Local::now().format("%H:%M:%S").to_string();
 
-        self.rows.insert(0, format!("{} - {}", now, status));
-
+        // self.rows.insert(0, format!("{} - {}", now, status));
+        self.rows.push(format!("{} » {}", now, status));
     }
 }

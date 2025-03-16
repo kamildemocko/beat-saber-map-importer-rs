@@ -1,53 +1,50 @@
 use std::{fs, io, path::PathBuf};
 
-use eframe::egui::DroppedFile;
 use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
 use zip::ZipArchive;
 
 
 #[derive(Default)]
-pub struct Copier{}
+pub struct Copier {
+    pub game_path: PathBuf
+}
 
 impl Copier {
-    pub fn new() -> Self {
-        Self{}
+    pub fn new() -> Result<Self> {
+        let game_path = Copier::set_game_path()?;
+
+        Ok(Self{
+            game_path: game_path,
+        })
     }
 
-    pub fn copy_to_game(&self, paths: &Vec<DroppedFile>) -> Result<()> {
+    fn set_game_path() -> Result<PathBuf> {
         let steam_install_path = Copier::get_steam_path()?;
         let steamapps_paths = Copier::get_steamapps_path(steam_install_path)?;
         if steamapps_paths.len() == 0 { 
             return Err(anyhow!("no steamapps paths found"))
         }
 
-        let game_folder = Copier::get_game_path(steamapps_paths)?;
+        Copier::get_game_path(steamapps_paths)
+    }
 
+    pub fn copy_to_game(&self, map_path: &PathBuf, map_name: &str) -> Result<()> {
         // TODO check file size and allow only X MB
-        
-        for map in paths {
-            let map_path = map.path.clone().unwrap();
-            let map_name = &map_path
-                .file_stem()
-                .ok_or_else(|| anyhow!("Invalid file name"))?
-                .to_string_lossy()
-                .to_string();
-            let destination_folder = game_folder
-                .join("Beat Saber_Data")
-                .join("CustomLevels")
-                .join(&map_name);
 
-            if destination_folder.exists() {
-                return Err(anyhow!(format!("map {} is already exists in game folder", map_name)))
-            }
+        let destination_folder = &self.game_path
+            .join(&map_name);
 
-            Copier::extract_files(map_path, destination_folder)?;
+        if destination_folder.exists() {
+            return Err(anyhow!(format!("map {} is already exists in game folder", map_name)))
         }
+
+        Copier::extract_files(map_path, destination_folder)?;
 
         Ok(())
     }
 
-    fn extract_files(zip_file: PathBuf, destination: PathBuf) -> Result<()> {
+    fn extract_files(zip_file: &PathBuf, destination: &PathBuf) -> Result<()> {
         fs::create_dir(&destination)?;
         let file = fs::File::open(zip_file)?;
         let mut archive = ZipArchive::new(file)?;
@@ -99,10 +96,16 @@ impl Copier {
             }
         }
 
-        match found_paths.len() {
+        let game_root = match found_paths.len() {
             0 => Err(anyhow!("game folder not found")),
             1 => Ok(found_paths.into_iter().next().unwrap()),
             _ => Err(anyhow!("multiple game folders were found")),
-        }
+        };
+
+
+        Ok(game_root?
+            .join("Beat Saber_Data")
+            .join("CustomLevels")
+        )
     }
 }
