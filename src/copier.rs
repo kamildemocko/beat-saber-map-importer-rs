@@ -7,34 +7,41 @@ use zip::ZipArchive;
 
 
 #[derive(Default)]
-pub struct Copier{}
+pub struct Copier {
+    pub game_path: PathBuf
+}
 
 impl Copier {
-    pub fn new() -> Self {
-        Self{}
+    pub fn new() -> Result<Self> {
+        let game_path = Copier::set_game_path()?;
+
+        Ok(Self{
+            game_path: game_path,
+        })
     }
 
-    pub fn copy_to_game(&self, paths: &Vec<DroppedFile>) -> Result<()> {
+    fn set_game_path() -> Result<PathBuf> {
         let steam_install_path = Copier::get_steam_path()?;
         let steamapps_paths = Copier::get_steamapps_path(steam_install_path)?;
         if steamapps_paths.len() == 0 { 
             return Err(anyhow!("no steamapps paths found"))
         }
 
-        let game_folder = Copier::get_game_path(steamapps_paths)?;
+        Copier::get_game_path(steamapps_paths)
+    }
 
-        // TODO check file size and allow only X MB
-        
+    pub fn copy_to_game(&self, paths: &Vec<DroppedFile>) -> Result<()> {
         for map in paths {
+
+            // TODO check file size and allow only X MB
+
             let map_path = map.path.clone().unwrap();
             let map_name = &map_path
                 .file_stem()
                 .ok_or_else(|| anyhow!("Invalid file name"))?
                 .to_string_lossy()
                 .to_string();
-            let destination_folder = game_folder
-                .join("Beat Saber_Data")
-                .join("CustomLevels")
+            let destination_folder = self.game_path
                 .join(&map_name);
 
             if destination_folder.exists() {
@@ -99,10 +106,16 @@ impl Copier {
             }
         }
 
-        match found_paths.len() {
+        let game_root = match found_paths.len() {
             0 => Err(anyhow!("game folder not found")),
             1 => Ok(found_paths.into_iter().next().unwrap()),
             _ => Err(anyhow!("multiple game folders were found")),
-        }
+        };
+
+
+        Ok(game_root?
+            .join("Beat Saber_Data")
+            .join("CustomLevels")
+        )
     }
 }

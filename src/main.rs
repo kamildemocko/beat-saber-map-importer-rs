@@ -8,8 +8,9 @@ mod copier;
 
 use crate::app::MyApp;
 use eframe::{egui::ViewportBuilder, run_native, NativeOptions};
+use anyhow::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let options = NativeOptions {
         viewport: ViewportBuilder::default()
             .with_inner_size(config::WINDOW_SIZE)
@@ -20,6 +21,8 @@ fn main() {
     _ = run_native(
         config::TITLE, 
         options, 
-        Box::new(|cc| Ok(Box::new(MyApp::new(cc))))
+        Box::new(|cc| Ok(Box::new(MyApp::new(cc)?)))
     );
+
+    Ok(())
 }

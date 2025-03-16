@@ -14,13 +14,13 @@ pub struct MyApp {
 }
 
 impl MyApp {
-    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>) -> Result<Self> {
+        Ok(Self {
             status: Status::new(),
             delete_checked: false,
             dropped_files: Vec::new(),
-            copier: Copier::new(),
-        }
+            copier: Copier::new()?,
+        })
     }
 
     fn render_ui(&mut self, ctx: &Context) {
@@ -30,7 +30,7 @@ impl MyApp {
             });
 
             ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
-                render_bottom_panel(ui, &mut self.status, &mut self.delete_checked);
+                render_bottom_panel(ui, &mut self.status, &mut self.delete_checked, &self.copier.game_path);
             });
         });
     }
@@ -66,7 +66,7 @@ impl MyApp {
                     if self.delete_checked {
                         if let Err(err) = self.try_delete_map(map) {
                             self.status.insert_status(format!("error: {}", err));
-                            return
+                            continue;
                         }
                     }
 
