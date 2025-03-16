@@ -1,6 +1,5 @@
 use std::{fs, io, path::PathBuf};
 
-use eframe::egui::DroppedFile;
 use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
 use zip::ZipArchive;
@@ -30,31 +29,22 @@ impl Copier {
         Copier::get_game_path(steamapps_paths)
     }
 
-    pub fn copy_to_game(&self, paths: &Vec<DroppedFile>) -> Result<()> {
-        for map in paths {
+    pub fn copy_to_game(&self, map_path: &PathBuf, map_name: &str) -> Result<()> {
+        // TODO check file size and allow only X MB
 
-            // TODO check file size and allow only X MB
+        let destination_folder = &self.game_path
+            .join(&map_name);
 
-            let map_path = map.path.clone().unwrap();
-            let map_name = &map_path
-                .file_stem()
-                .ok_or_else(|| anyhow!("Invalid file name"))?
-                .to_string_lossy()
-                .to_string();
-            let destination_folder = self.game_path
-                .join(&map_name);
-
-            if destination_folder.exists() {
-                return Err(anyhow!(format!("map {} is already exists in game folder", map_name)))
-            }
-
-            Copier::extract_files(map_path, destination_folder)?;
+        if destination_folder.exists() {
+            return Err(anyhow!(format!("map {} is already exists in game folder", map_name)))
         }
+
+        Copier::extract_files(map_path, destination_folder)?;
 
         Ok(())
     }
 
-    fn extract_files(zip_file: PathBuf, destination: PathBuf) -> Result<()> {
+    fn extract_files(zip_file: &PathBuf, destination: &PathBuf) -> Result<()> {
         fs::create_dir(&destination)?;
         let file = fs::File::open(zip_file)?;
         let mut archive = ZipArchive::new(file)?;
