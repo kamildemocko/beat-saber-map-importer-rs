@@ -1,8 +1,8 @@
 use eframe::egui::IconData;
 
 
-pub fn get_icon() -> IconData {
-    let icon_image = include_bytes!("../../icon.png");
+pub fn get_app_icon() -> IconData {
+    let icon_image = include_bytes!("../../assets/icon.png");
     let img = match image::load_from_memory(icon_image) {
         Ok(img) => img,
         Err(_) => {

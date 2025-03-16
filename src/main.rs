@@ -7,7 +7,8 @@ mod status;
 mod copier;
 
 use crate::app::MyApp;
-use crate::ui::get_icon;
+use crate::ui::get_app_icon;
+
 use eframe::{egui::ViewportBuilder, run_native, NativeOptions};
 use anyhow::Result;
 
@@ -17,7 +18,7 @@ fn main() -> Result<()> {
             .with_inner_size(config::WINDOW_SIZE)
             .with_resizable(false)
             .with_drag_and_drop(true)
-            .with_icon(get_icon()),
+            .with_icon(get_app_icon()),
         ..Default::default()
     };
 
