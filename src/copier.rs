@@ -4,8 +4,6 @@ use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
 use zip::ZipArchive;
 
-use crate::app::MyApp;
-
 
 #[derive(Default)]
 pub struct Copier {
