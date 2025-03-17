@@ -49,21 +49,30 @@ impl MyApp {
                 self.dropped_files.clone_from(&i.raw.dropped_files);
             }
         });
-
-        if !self.picked_files.is_empty() {
-            println!("wanted to process...");
-            todo!()
-        }
     }
 
-    fn process_dropped_files(&mut self) {
-        if self.dropped_files.is_empty() {
+    fn convert_dropped_files(dropped_files: &Vec<DroppedFile>) -> Vec<PathBuf> {
+        dropped_files.iter().map(|map| {
+            map.path.clone().unwrap()
+        }).collect()
+    }
+
+    fn process_dropped_and_picked_files(&mut self) {
+        let mut proc_files: Vec<PathBuf> = Vec::new();
+
+        if !self.dropped_files.is_empty() {
+            proc_files.extend(MyApp::convert_dropped_files(&self.dropped_files));
+        }
+        if !self.picked_files.is_empty() {
+            proc_files.extend(self.picked_files.clone());
+        }
+
+        if proc_files.is_empty() {
             return;
         }
 
-        for map in &self.dropped_files {
-            let map_path = map.path.as_ref().unwrap();
-            let map_name = match self.get_map_name_from_dropped_file(map) {
+        for map in proc_files {
+            let map_name = match self.get_map_name_from_path(&map) {
                 Ok(map_name) => map_name,
                 Err(err) => {
                     self.status.insert_status(format!("error: {}", err));
@@ -71,10 +80,10 @@ impl MyApp {
                 }
             };
 
-            match self.copier.copy_to_game(map_path, &map_name) {
+            match self.copier.copy_to_game(&map, &map_name) {
                 Ok(_) => {
                     if self.delete_checked {
-                        if let Err(err) = self.try_delete_map(map) {
+                        if let Err(err) = self.try_delete_map(&map) {
                             self.status.insert_status(format!("error: {}", err));
                             continue;
                         }
@@ -88,27 +97,25 @@ impl MyApp {
                     continue;
                 }
             }
-
         }
+
+        self.reset_dropped_and_picked_files();
     }
 
-    fn reset_dropped_files(&mut self) {
+    fn reset_dropped_and_picked_files(&mut self) {
         self.dropped_files = Vec::new();
+        self.picked_files = Vec::new();
     }
 
-    fn try_delete_map(&self, map: &DroppedFile) -> Result<()> {
-        if let Some(path) = &map.path {
-            fs::remove_file(path)?;
-        }
+
+    fn try_delete_map(&self, map: &PathBuf) -> Result<()> {
+        fs::remove_file(map)?;
 
         Ok(())
     }
 
-    fn get_map_name_from_dropped_file(&self, map: &DroppedFile) -> Result<String> {
-        let map_path = map.path.as_ref()
-            .ok_or_else(|| anyhow!("cannot get path from file"))?;
-
-        let map_name = map_path
+    fn get_map_name_from_path(&self, map: &PathBuf) -> Result<String> {
+        let map_name = map
             .file_stem()
             .map(|p| p.to_string_lossy().to_string())
             .ok_or_else(|| anyhow!("cannot get name from file"))?;
@@ -122,7 +129,6 @@ impl App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.render_ui(ctx);
         self.check_new_files(ctx);
-        self.process_dropped_files();
-        self.reset_dropped_files();
+        self.process_dropped_and_picked_files();
     }
 }
