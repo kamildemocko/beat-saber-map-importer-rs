@@ -20,8 +20,12 @@ impl Status {
         }
 
         let now = Local::now().format("%H:%M:%S").to_string();
+        let status_clean = match status.len() {
+            len if len <= 90 => status,
+            _ => format!("{}..", status[..88].to_string()),
+        };
+        let msg = format!("{} » {}", now, status_clean);
 
-        // self.rows.insert(0, format!("{} - {}", now, status));
-        self.rows.push(format!("{} » {}", now, status));
+        self.rows.push(msg);
     }
 }

@@ -7,7 +7,8 @@ use zip::ZipArchive;
 
 #[derive(Default)]
 pub struct Copier {
-    pub game_path: PathBuf
+    pub game_path: PathBuf,
+    max_filesize: u64,
 }
 
 impl Copier {
@@ -16,6 +17,7 @@ impl Copier {
 
         Ok(Self{
             game_path: game_path,
+            max_filesize: 100 * 1024 * 1024,
         })
     }
 
@@ -37,9 +39,12 @@ impl Copier {
 
     pub fn copy_to_game(&self, map_path: &PathBuf, map_name: &str) -> Result<()> {
         let filesize = Copier::get_filesize(map_path)?;
-        if filesize > 100 * 1024 * 1024 {
+        if filesize > self.max_filesize {
             return Err(anyhow!(format!(
-                "map is too big: {:.2}MB, restriction: 100MB - {}", filesize / (1024 * 1024), map_name
+                "map is too big: {:.2}MB, restriction: {}MB - {}", 
+                filesize / (1024 * 1024), 
+                self.max_filesize, 
+                map_name
             )))
         }
 
