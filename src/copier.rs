@@ -1,8 +1,10 @@
-use std::{fs, io, path::PathBuf};
+use std::{fs, io, os::windows::fs::MetadataExt, path::PathBuf};
 
 use regex::Regex;
 use anyhow::{anyhow, Ok, Result};
 use zip::ZipArchive;
+
+use crate::app::MyApp;
 
 
 #[derive(Default)]
@@ -29,14 +31,25 @@ impl Copier {
         Copier::get_game_path(steamapps_paths)
     }
 
+    fn get_filesize(path: &PathBuf) -> Result<u64> {
+        Ok(fs::metadata(path)?
+            .file_size()
+        )
+    }
+
     pub fn copy_to_game(&self, map_path: &PathBuf, map_name: &str) -> Result<()> {
-        // TODO check file size and allow only X MB
+        let filesize = Copier::get_filesize(map_path)?;
+        if filesize > 100 * 1024 * 1024 {
+            return Err(anyhow!(format!(
+                "map is too big: {:.2}MB, restriction: 100MB - {}", filesize / (1024 * 1024), map_name
+            )))
+        }
 
         let destination_folder = &self.game_path
             .join(&map_name);
 
         if destination_folder.exists() {
-            return Err(anyhow!(format!("map {} is already exists in game folder", map_name)))
+            return Err(anyhow!(format!("map is already exists in game folder - {}", map_name)))
         }
 
         Copier::extract_files(map_path, destination_folder)?;
