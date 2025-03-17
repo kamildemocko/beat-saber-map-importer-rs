@@ -529,7 +529,7 @@ dependencies = [
 
 [[package]]
 name = "beat_saber_map_importer_rs"
-version = "1.2.1"
+version = "1.2.2"
 dependencies = [
  "anyhow",
  "chrono",
