@@ -51,26 +51,36 @@ impl MyApp {
         });
     }
 
-    fn convert_dropped_files(dropped_files: &Vec<DroppedFile>) -> Vec<PathBuf> {
+    fn convert_dropped_files(dropped_files: &Vec<DroppedFile>) -> Option<Vec<PathBuf>> {
         dropped_files.iter().map(|map| {
-            map.path.clone().unwrap()
+            map.path.clone()
         }).collect()
     }
 
     fn process_dropped_and_picked_files(&mut self) {
+        // collect data
         let mut proc_files: Vec<PathBuf> = Vec::new();
 
         if !self.dropped_files.is_empty() {
-            proc_files.extend(MyApp::convert_dropped_files(&self.dropped_files));
+            let converted_dropped_files = match MyApp::convert_dropped_files(&self.dropped_files) {
+                Some(val) => val,
+                None => {
+                    self.status.insert_status("error: cannot get path from dropped files".to_string());
+                    return;
+                }
+            };
+            proc_files.extend(converted_dropped_files);
         }
         if !self.picked_files.is_empty() {
             proc_files.extend(self.picked_files.clone());
         }
 
+        // if no data
         if proc_files.is_empty() {
             return;
         }
 
+        // process map files
         for map in proc_files {
             let map_name = match self.get_map_name_from_path(&map) {
                 Ok(map_name) => map_name,
