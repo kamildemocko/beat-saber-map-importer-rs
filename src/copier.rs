@@ -53,7 +53,7 @@ impl Copier {
             let mut file = archive.by_index(i)?;
             let outpath = destination.join(file.name());
             let mut exoutfile = fs::File::create(&outpath)?;
-            io::copy(&mut file, &mut exoutfile).unwrap();
+            io::copy(&mut file, &mut exoutfile)?;
         }
 
         Ok(())
