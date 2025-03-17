@@ -1,7 +1,7 @@
-use std::fs;
+use std::{fs, path::PathBuf};
 
 use anyhow::{anyhow, Result};
-use eframe::{egui::{self, Align, CentralPanel, Context, DroppedFile, Layout}, App};
+use eframe::{egui::{self, Align, CentralPanel, Context, DroppedFile, Layout, Vec2}, App};
 
 use crate::{copier::Copier, status::Status, ui::{render_bottom_panel, render_central_view}};
 
@@ -10,6 +10,7 @@ pub struct MyApp {
     status: Status,
     delete_checked: bool,
     dropped_files: Vec<DroppedFile>,
+    picked_files: Vec<PathBuf>,
     copier: Copier,
 }
 
@@ -19,14 +20,21 @@ impl MyApp {
             status: Status::new(),
             delete_checked: false,
             dropped_files: Vec::new(),
+            picked_files: Vec::new(),
             copier: Copier::new()?,
         })
     }
 
     fn render_ui(&mut self, ctx: &Context) {
+        // style
+        let mut style = egui::Style::default();
+        style.spacing.button_padding = Vec2::new(20.0, 10.0);
+        ctx.set_style(style);
+
+        // components
         CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered(|ui| {
-                render_central_view(ui);
+                render_central_view(ui, &mut self.picked_files);
             });
 
             ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
@@ -40,7 +48,12 @@ impl MyApp {
             if !i.raw.dropped_files.is_empty() {
                 self.dropped_files.clone_from(&i.raw.dropped_files);
             }
-        })
+        });
+
+        if !self.picked_files.is_empty() {
+            println!("wanted to process...");
+            todo!()
+        }
     }
 
     fn process_dropped_files(&mut self) {
